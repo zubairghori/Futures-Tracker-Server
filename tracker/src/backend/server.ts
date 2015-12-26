@@ -1,11 +1,252 @@
 /// <reference path="../../typings/tsd.d.ts" />
+
+
+import firebase = require('firebase');
 import express = require('express');
+import bodyParser = require('body-parser')
+
 
 var app : express.Express = express();
+var root = new firebase('https://futures-tracker.firebaseio.com/')
+
+app.use(bodyParser.urlencoded({extended:true}))
+app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
-	res.send('futures tracker')
+	res.send('Hello futures tracker')
 });
+
+
+var UserRouter = express.Router()
+var MapRouter = express.Router()
+var ParkingRouter = express.Router()
+
+UserRouter.route('/user')
+
+.get((req,res)=>{
+	var responseJson = {
+		hello:"my json route"
+	}
+	res.send(responseJson)
+	
+})
+
+.post((req,res)=>{
+  
+    var name = req.body.name
+    var email = req.body.email
+    var password = req.body.password
+    var cellNo = req.body.cellNo
+    var address = req.body.address
+    var vehilceNo = req.body.vehicleNo
+    var vehicleModel = req.body.vehicleModel
+    var timestamp = firebase.ServerValue.TIMESTAMP
+    var trackerUUID = req.body.trackerUUID
+
+
+    var user = 
+    
+    {   
+        name:name,
+        email:email,
+        password:password,
+        cellNo:cellNo,
+        address:address,
+        vehicleNo:vehilceNo,
+        vehicleModel:vehicleModel,
+        timestamp:timestamp,
+        trackerUUID:trackerUUID 
+     }   
+     
+    root.child('users').once("value",(snapshot)=>{
+     
+
+
+
+     if (snapshot.child(name+'-'+trackerUUID).exists()){
+         res.send({status:name+'-'+trackerUUID+ " Already exist"})
+         
+
+     }else{
+   
+     root.child('users').child(name+'-'+trackerUUID).set(user,(error)=>{
+        if (error){
+            res.send({status:"user Not Created"})
+        }else{
+            res.send({status:"user Created",user:user})
+        }
+        
+    })   
+
+     }
+     
+
+    })
+    
+    
+
+    
+})
+
+MapRouter.route('/Map')
+
+.get((req,res)=>{
+    res.send({message:'this is my maps'})
+})
+
+.post((req,res)=>{
+
+    var name = req.body.name
+    var trackerUUID = req.body.trackerUUID
+    var longitude = req.body.longitude
+    var latittude = req.body.latittude
+    var speed = req.body.speed
+    var timestamp = firebase.ServerValue.TIMESTAMP
+    
+    var location = {
+        longitude:longitude,
+        latittude:latittude,
+        speed:speed,
+        timestamp:timestamp
+        }
+        
+     root.child('users').once("value",(snapshot)=>{
+         
+     if (snapshot.child(name+'-'+trackerUUID).exists()){
+         root.child('Maps').child(name+'-'+trackerUUID).push(location,(error)=>{
+             if (error){
+                 res.send({status:'location not saved'})
+             }else{
+                 res.send({status:'location saved'})
+             }
+         })
+     }else{
+         res.send({status:"Tracker is not Registered yet"})
+     }
+    
+})
+})
+
+ParkingRouter.route('/ParkingStart')
+
+.get((req,res)=>{
+    res.send({message:'this is my startparking'})
+})
+
+.post((req,res)=>{
+
+    var name = req.body.name
+    var trackerUUID = req.body.trackerUUID
+    var longitude = req.body.longitude
+    var latittude = req.body.latittude
+    var StartTimestamp = firebase.ServerValue.TIMESTAMP
+     
+    var location = {
+        longitude:longitude,
+        latittude:latittude,
+        StartTimestamp:StartTimestamp
+        }
+        
+     root.child('users').once("value",(snapshot)=>{
+         
+     if (snapshot.child(name+'-'+trackerUUID).exists()){
+
+        
+        root.child('Parking').child(name+'-'+trackerUUID).once('value',(snapshot)=>{
+var count = 0 
+snapshot.forEach((data)=>{
+  var temp =  data.numChildren()
+  if (temp == 1){
+      count=1
+  }
+})
+if (count == 1){
+    res.send({status:'please first add end parking'})
+}else{
+
+         
+         var postRef = root.child('Parking').child(name+'-'+trackerUUID).push()
+         
+         postRef.child('StartParking').set(location,(error)=>{
+             if (error){
+                 res.send({status:'start parking not saved'})
+             }else{
+                 res.send({status:'start parking saved',id:postRef.key()})
+             }
+         })
+
+}
+        })
+        
+     }else{
+         res.send({status:"Tracker is not Registered yet"})
+     }
+    
+})
+})
+
+ParkingRouter.route('/ParkingEnd')
+
+.get((req,res)=>{
+    res.send({message:'this is my Endparking'})
+})
+
+.post((req,res)=>{
+
+    var name = req.body.name
+    var trackerUUID = req.body.trackerUUID
+    var longitude = req.body.longitude
+    var latittude = req.body.latittude
+    var EndTimestamp = firebase.ServerValue.TIMESTAMP
+    var id = req.body.id
+     
+    var location = {
+        longitude:longitude,
+        latittude:latittude,
+        EndTimestamp:EndTimestamp
+        }
+        
+     root.child('users').once("value",(snapshot)=>{
+         
+     if (snapshot.child(name+'-'+trackerUUID).exists()){
+
+        
+        root.child('Parking').child(name+'-'+trackerUUID).once('value',(snapshot)=>{
+var count = 0 
+snapshot.forEach((data)=>{
+  var temp =  data.numChildren()
+  if (temp == 1){
+      count=1
+  }
+})
+if (count != 1){
+    res.send({status:'please first add start parking'})
+}else{
+
+         
+         var postRef = root.child('Parking').child(name+'-'+trackerUUID).child(id)
+         
+         postRef.child('EndParking').set(location,(error)=>{
+             if (error){
+                 res.send({status:'end parking not saved'})
+             }else{
+                 res.send({status:'end parking saved'})
+             }
+         })
+
+}
+        })
+        
+     }else{
+         res.send({status:"Tracker is not Registered yet"})
+     }
+    
+})
+})
+
+app.use(UserRouter)
+app.use(MapRouter)
+app.use(ParkingRouter)
 
 var port: number = process.env.PORT || 3000;
 

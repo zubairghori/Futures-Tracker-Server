@@ -6,16 +6,25 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "express/express.d.ts": {
-      "commit": "fc341765ebbb04b7109981a25dced01f488f4d94"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "node/node.d.ts": {
-      "commit": "fc341765ebbb04b7109981a25dced01f488f4d94"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "mime/mime.d.ts": {
-      "commit": "fc341765ebbb04b7109981a25dced01f488f4d94"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "serve-static/serve-static.d.ts": {
-      "commit": "fc341765ebbb04b7109981a25dced01f488f4d94"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
+    },
+    "firebase/firebase.d.ts": {
+      "commit": "16134c168d021351acb1673ee9659644fc58c424"
+    },
+    "mongoose/mongoose.d.ts": {
+      "commit": "98b4177d24ed2b5679d395c832ef337bd0b17c1c"
+    },
+    "body-parser/body-parser.d.ts": {
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     }
   }
 }
