@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
-	res.send('Hello futures tracker')
+	res.send({Message:'Hello futures tracker'})
 });
 
 
@@ -87,6 +87,42 @@ UserRouter.route('/user')
 
     
 })
+UserRouter.route('/signIn')
+
+.get((reqq,res)=>{
+    res.send({message:"its sign in api"})
+})
+
+.post((req,res)=>{
+    
+    var name = req.body.name
+    var trackerUUID = req.body.trackerUUID
+    var password = req.body.password
+    
+     root.child('users').once("value",(snapshot)=>{
+         
+     if (snapshot.child(name+'-'+trackerUUID).exists()){
+         
+         root.child('users').child(name+'-'+trackerUUID).once('value',(snapshot)=>{
+        
+        var data = snapshot.val()
+        
+        if (data.name == name && data.trackerUUID == trackerUUID && data.password == password){
+            res.send({data:data})
+        }else{
+res.send({'status':'your credentials not matched'})
+            
+        }
+         })
+     }else{
+         res.send({status:"Tracker is not Registered yet"})
+     }
+    
+})
+    
+    
+})
+
 
 MapRouter.route('/Map')
 

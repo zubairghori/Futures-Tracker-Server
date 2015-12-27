@@ -7,7 +7,7 @@ var root = new firebase('https://futures-tracker.firebaseio.com/');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.get('/', function (req, res) {
-    res.send('Hello futures tracker');
+    res.send({ Message: 'Hello futures tracker' });
 });
 var UserRouter = express.Router();
 var MapRouter = express.Router();
@@ -53,6 +53,31 @@ UserRouter.route('/user')
                     res.send({ status: "user Created", user: user });
                 }
             });
+        }
+    });
+});
+UserRouter.route('/signIn')
+    .get(function (reqq, res) {
+    res.send({ message: "its sign in api" });
+})
+    .post(function (req, res) {
+    var name = req.body.name;
+    var trackerUUID = req.body.trackerUUID;
+    var password = req.body.password;
+    root.child('users').once("value", function (snapshot) {
+        if (snapshot.child(name + '-' + trackerUUID).exists()) {
+            root.child('users').child(name + '-' + trackerUUID).once('value', function (snapshot) {
+                var data = snapshot.val();
+                if (data.name == name && data.trackerUUID == trackerUUID && data.password == password) {
+                    res.send({ data: data });
+                }
+                else {
+                    res.send({ 'status': 'your credentials not matched' });
+                }
+            });
+        }
+        else {
+            res.send({ status: "Tracker is not Registered yet" });
         }
     });
 });
