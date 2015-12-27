@@ -18,6 +18,7 @@
     "typescript": "^1.6.2"
   },
   "dependencies": {
+    "bcrypt": "^0.8.5",
     "body-parser": "^1.14.2",
     "express": "^4.13.3",
     "firebase": "^2.3.2",

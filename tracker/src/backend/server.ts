@@ -4,7 +4,7 @@
 import firebase = require('firebase');
 import express = require('express');
 import bodyParser = require('body-parser')
-
+import bcrypt = require('bcrypt')
 
 var app : express.Express = express();
 var root = new firebase('https://futures-tracker.firebaseio.com/')
@@ -44,19 +44,8 @@ UserRouter.route('/user')
     var trackerUUID = req.body.trackerUUID
 
 
-    var user = 
-    
-    {   
-        name:name,
-        email:email,
-        password:password,
-        cellNo:cellNo,
-        address:address,
-        vehicleNo:vehilceNo,
-        vehicleModel:vehicleModel,
-        timestamp:timestamp,
-        trackerUUID:trackerUUID 
-     }   
+
+   
      
     root.child('users').once("value",(snapshot)=>{
      
@@ -69,7 +58,30 @@ UserRouter.route('/user')
 
      }else{
    
-     root.child('users').child(name+'-'+trackerUUID).set(user,(error)=>{
+
+    
+    bcrypt.genSalt(10,(err,salt)=>{
+    bcrypt.hash(password,salt,(err,hash)=>{
+if (err){
+    res.send({status:'password encryption failed'})
+}else{
+    
+    var user = 
+    
+    {   
+        name:name,
+        email:email,
+        password:hash,
+        cellNo:cellNo,
+        address:address,
+        vehicleNo:vehilceNo,
+        vehicleModel:vehicleModel,
+        timestamp:timestamp,
+        trackerUUID:trackerUUID 
+     }   
+     
+     
+      root.child('users').child(name+'-'+trackerUUID).set(user,(error)=>{
         if (error){
             res.send({status:"user Not Created"})
         }else{
@@ -77,6 +89,11 @@ UserRouter.route('/user')
         }
         
     })   
+     
+}
+    })
+})
+    
 
      }
      
@@ -87,6 +104,7 @@ UserRouter.route('/user')
 
     
 })
+
 UserRouter.route('/signIn')
 
 .get((reqq,res)=>{
@@ -107,13 +125,22 @@ UserRouter.route('/signIn')
         
         var data = snapshot.val()
         
-        if (data.name == name && data.trackerUUID == trackerUUID && data.password == password){
-            res.send({data:data})
+        bcrypt.compare(password,data.password,(err,flag)=>{
+        
+        if (err){
+            res.send({status:'password decryption failed'})
         }else{
-res.send({'status':'your credentials not matched'})
+           if (data.name == name && data.trackerUUID == trackerUUID && flag){
+           res.send({data:data})
+        }else{
+            
+            res.send({'status':'your credentials not matched'})
             
         }
-         })
+        }    
+        
+        })
+    })
      }else{
          res.send({status:"Tracker is not Registered yet"})
      }

@@ -2,6 +2,7 @@
 var firebase = require('firebase');
 var express = require('express');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcrypt');
 var app = express();
 var root = new firebase('https://futures-tracker.firebaseio.com/');
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -29,29 +30,38 @@ UserRouter.route('/user')
     var vehicleModel = req.body.vehicleModel;
     var timestamp = firebase.ServerValue.TIMESTAMP;
     var trackerUUID = req.body.trackerUUID;
-    var user = {
-        name: name,
-        email: email,
-        password: password,
-        cellNo: cellNo,
-        address: address,
-        vehicleNo: vehilceNo,
-        vehicleModel: vehicleModel,
-        timestamp: timestamp,
-        trackerUUID: trackerUUID
-    };
     root.child('users').once("value", function (snapshot) {
         if (snapshot.child(name + '-' + trackerUUID).exists()) {
             res.send({ status: name + '-' + trackerUUID + " Already exist" });
         }
         else {
-            root.child('users').child(name + '-' + trackerUUID).set(user, function (error) {
-                if (error) {
-                    res.send({ status: "user Not Created" });
-                }
-                else {
-                    res.send({ status: "user Created", user: user });
-                }
+            bcrypt.genSalt(10, function (err, salt) {
+                bcrypt.hash(password, salt, function (err, hash) {
+                    if (err) {
+                        res.send({ status: 'password encryption failed' });
+                    }
+                    else {
+                        var user = {
+                            name: name,
+                            email: email,
+                            password: hash,
+                            cellNo: cellNo,
+                            address: address,
+                            vehicleNo: vehilceNo,
+                            vehicleModel: vehicleModel,
+                            timestamp: timestamp,
+                            trackerUUID: trackerUUID
+                        };
+                        root.child('users').child(name + '-' + trackerUUID).set(user, function (error) {
+                            if (error) {
+                                res.send({ status: "user Not Created" });
+                            }
+                            else {
+                                res.send({ status: "user Created", user: user });
+                            }
+                        });
+                    }
+                });
             });
         }
     });
@@ -68,12 +78,19 @@ UserRouter.route('/signIn')
         if (snapshot.child(name + '-' + trackerUUID).exists()) {
             root.child('users').child(name + '-' + trackerUUID).once('value', function (snapshot) {
                 var data = snapshot.val();
-                if (data.name == name && data.trackerUUID == trackerUUID && data.password == password) {
-                    res.send({ data: data });
-                }
-                else {
-                    res.send({ 'status': 'your credentials not matched' });
-                }
+                bcrypt.compare(password, data.password, function (err, flag) {
+                    if (err) {
+                        res.send({ status: 'password decryption failed' });
+                    }
+                    else {
+                        if (data.name == name && data.trackerUUID == trackerUUID && flag) {
+                            res.send({ data: data });
+                        }
+                        else {
+                            res.send({ 'status': 'your credentials not matched' });
+                        }
+                    }
+                });
             });
         }
         else {
