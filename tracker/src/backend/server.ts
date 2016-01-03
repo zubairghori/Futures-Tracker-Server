@@ -180,7 +180,7 @@ MapRouter.route('/Map')
         speed:speed,
         timestamp:timestamp
         }
-        
+        console.log('hello')
      root.child('users').once("value",(snapshot)=>{
          
      if (snapshot.child(name+'-'+trackerUUID).exists()){
