@@ -3,6 +3,7 @@ var firebase = require('firebase');
 var express = require('express');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt');
+var FirebaseTokenGenerator = require("firebase-token-generator");
 var app = express();
 var root = new firebase('https://futures-tracker.firebaseio.com/');
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -58,6 +59,7 @@ UserRouter.route('/user')
                             timestamp: timestamp,
                             trackerUUID: trackerUUID
                         };
+                        res.send({ status: "user Not Created in firebase auth" });
                         root.child('users').child(name + '-' + trackerUUID).set(user, function (error) {
                             if (error) {
                                 res.send({ status: "user Not Created" });
@@ -90,7 +92,10 @@ UserRouter.route('/signIn')
                     }
                     else {
                         if (data.name == name && data.trackerUUID == trackerUUID && flag) {
-                            res.send({ data: data });
+                            var tokenGenerator = new FirebaseTokenGenerator("uRnO40MgXdiefLvVUqgekzjEaZskm6qLyrfyiitu");
+                            var token = tokenGenerator.createToken({ uid: "1", data: data });
+                            console.log(token);
+                            res.send({ sucess: "true", token: token });
                         }
                         else {
                             res.send({ 'status': 'your credentials not matched' });
@@ -121,6 +126,7 @@ MapRouter.route('/Map')
         speed: speed,
         timestamp: timestamp
     };
+    console.log('hello');
     root.child('users').once("value", function (snapshot) {
         if (snapshot.child(name + '-' + trackerUUID).exists()) {
             root.child('Maps').child(name + '-' + trackerUUID).push(location, function (error) {
@@ -232,7 +238,6 @@ ParkingRouter.route('/ParkingEnd')
 });
 app.use(UserRouter);
 app.use(MapRouter);
-
 app.use(ParkingRouter);
 var port = process.env.PORT || 3000;
 var server = app.listen(port, function () {
