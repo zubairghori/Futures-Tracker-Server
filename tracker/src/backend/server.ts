@@ -140,16 +140,16 @@ UserRouter.route('/signIn')
                     bcrypt.compare(password, data.password, (err, flag) => {
 
                         if (err) {
-                            res.send({ status: 'password decryption failed' })
+                            res.send({ sucess: "false", status: 'password decryption failed' })
                         } else {
                             if (data.name == name && data.trackerUUID == trackerUUID && flag) {
                                 var tokenGenerator = new FirebaseTokenGenerator("uRnO40MgXdiefLvVUqgekzjEaZskm6qLyrfyiitu");
-                                var token = tokenGenerator.createToken({uid:"1" , data: data });
+                                var token = tokenGenerator.createToken({ uid: "1", data: data });
                                 console.log(token)
-                                res.send({ sucess:"true" , token : token })
+                                res.send({ sucess: "true", token: token })
                             } else {
 
-                                res.send({ 'status': 'your credentials not matched' })
+                                res.send({ sucess: "false", 'status': 'your credentials not matched' })
 
                             }
                         }
@@ -157,7 +157,7 @@ UserRouter.route('/signIn')
                     })
                 })
             } else {
-                res.send({ status: "Tracker is not Registered yet" })
+                res.send({ sucess: false, status: "Tracker is not Registered yet" })
             }
 
         })
