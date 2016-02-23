@@ -3,6 +3,7 @@ var firebase = require('firebase');
 var express = require('express');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt');
+var Request = require('request');
 var FirebaseTokenGenerator = require("firebase-token-generator");
 var app = express();
 var root = new firebase('https://futures-tracker.firebaseio.com/');
@@ -88,7 +89,7 @@ UserRouter.route('/signIn')
                 var data = snapshot.val();
                 bcrypt.compare(password, data.password, function (err, flag) {
                     if (err) {
-                        res.send({ status: 'password decryption failed' });
+                        res.send({ sucess: "false", status: 'password decryption failed' });
                     }
                     else {
                         if (data.name == name && data.trackerUUID == trackerUUID && flag) {
@@ -98,14 +99,14 @@ UserRouter.route('/signIn')
                             res.send({ sucess: "true", token: token });
                         }
                         else {
-                            res.send({ 'status': 'your credentials not matched' });
+                            res.send({ sucess: "false", 'status': 'your credentials not matched' });
                         }
                     }
                 });
             });
         }
         else {
-            res.send({ status: "Tracker is not Registered yet" });
+            res.send({ sucess: false, status: "Tracker is not Registered yet" });
         }
     });
 });
@@ -119,27 +120,36 @@ MapRouter.route('/Map')
     var longitude = req.body.longitude;
     var latittude = req.body.latittude;
     var speed = req.body.speed;
-    var timestamp = firebase.ServerValue.TIMESTAMP;
-    var location = {
-        longitude: longitude,
-        latittude: latittude,
-        speed: speed,
-        timestamp: timestamp
-    };
-    console.log('hello');
-    root.child('users').once("value", function (snapshot) {
-        if (snapshot.child(name + '-' + trackerUUID).exists()) {
-            root.child('Maps').child(name + '-' + trackerUUID).push(location, function (error) {
-                if (error) {
-                    res.send({ status: 'location not saved' });
-                }
-                else {
-                    res.send({ status: 'location saved' });
-                }
-            });
+    var timestamp = Date.now();
+    var url = 'https://roads.googleapis.com/v1/snapToRoads?path=' + latittude + ',' + longitude + '&key=AIzaSyBehWXXONQ7xeYPtJnstLl4pucOZ0iF0U8';
+    Request(url, function (error, response, body) {
+        var temp = JSON.parse(body);
+        var location = {
+            longitude: longitude,
+            latittude: latittude,
+            speed: speed,
+            timestamp: timestamp,
+            snaped: temp.snappedPoints[0]
+        };
+        if (error) {
+            res.send({ status: error });
         }
         else {
-            res.send({ status: "Tracker is not Registered yet" });
+            root.child('users').once("value", function (snapshot) {
+                if (snapshot.child(name + '-' + trackerUUID).exists()) {
+                    var loc = root.child('Maps').child(name + '-' + trackerUUID).push(location, function (error) {
+                        if (error) {
+                            res.send({ status: 'location not saved' });
+                        }
+                        else {
+                            res.send({ status: 'location saved' });
+                        }
+                    });
+                }
+                else {
+                    res.send({ status: "Tracker is not Registered yet" });
+                }
+            });
         }
     });
 });

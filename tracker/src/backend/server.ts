@@ -5,6 +5,8 @@ import firebase = require('firebase');
 import express = require('express');
 import bodyParser = require('body-parser')
 import bcrypt = require('bcrypt')
+import Request = require('request')
+
 var FirebaseTokenGenerator = require("firebase-token-generator");
 
 
@@ -179,27 +181,44 @@ MapRouter.route('/Map')
         var longitude = req.body.longitude
         var latittude = req.body.latittude
         var speed = req.body.speed
-        var timestamp = firebase.ServerValue.TIMESTAMP
+        var timestamp = Date.now()
+        var url = 'https://roads.googleapis.com/v1/snapToRoads?path=' + latittude + ',' + longitude + '&key=AIzaSyBehWXXONQ7xeYPtJnstLl4pucOZ0iF0U8'
 
-        var location = {
-            longitude: longitude,
-            latittude: latittude,
-            speed: speed,
-            timestamp: timestamp
-        }
-        console.log('hello')
-        root.child('users').once("value", (snapshot) => {
 
-            if (snapshot.child(name + '-' + trackerUUID).exists()) {
-                root.child('Maps').child(name + '-' + trackerUUID).push(location, (error) => {
-                    if (error) {
-                        res.send({ status: 'location not saved' })
-                    } else {
-                        res.send({ status: 'location saved' })
-                    }
-                })
+
+        Request(url, (error, response, body) => { //Road api calling 
+            var temp = JSON.parse(body)
+
+            var location = {
+                longitude: longitude,
+                latittude: latittude,
+                speed: speed,
+                timestamp: timestamp,
+                snaped: temp.snappedPoints[0]
+            }
+            
+            if (error) {
+                res.send({ status: error })
             } else {
-                res.send({ status: "Tracker is not Registered yet" })
+
+                root.child('users').once("value", (snapshot) => { // write to firebase
+
+                    if (snapshot.child(name + '-' + trackerUUID).exists()) {
+                        var loc = root.child('Maps').child(name + '-' + trackerUUID).push(location, (error) => {
+                            if (error) {
+                                res.send({ status: 'location not saved' })
+                            } else {
+                                res.send({ status: 'location saved' })
+                            }
+                        })
+
+
+                    } else {
+                        res.send({ status: "Tracker is not Registered yet" })
+                    }
+
+                })
+
             }
 
         })

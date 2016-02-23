@@ -9,7 +9,7 @@
       "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "node/node.d.ts": {
-      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
+      "commit": "dade4414712ce84e3c63393f1aae407e9e7e6af7"
     },
     "mime/mime.d.ts": {
       "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
@@ -28,6 +28,12 @@
     },
     "bcrypt/bcrypt.d.ts": {
       "commit": "1ffc055e50f0df255da310485a7871c6f894e370"
+    },
+    "request/request.d.ts": {
+      "commit": "dade4414712ce84e3c63393f1aae407e9e7e6af7"
+    },
+    "form-data/form-data.d.ts": {
+      "commit": "dade4414712ce84e3c63393f1aae407e9e7e6af7"
     }
   }
 }

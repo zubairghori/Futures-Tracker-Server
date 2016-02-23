@@ -6,3 +6,5 @@
 /// <reference path="mongoose/mongoose.d.ts" />
 /// <reference path="body-parser/body-parser.d.ts" />
 /// <reference path="bcrypt/bcrypt.d.ts" />
+/// <reference path="form-data/form-data.d.ts" />
+/// <reference path="request/request.d.ts" />
