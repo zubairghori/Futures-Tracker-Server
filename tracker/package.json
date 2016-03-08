@@ -23,6 +23,7 @@
     "express": "^4.13.3",
     "firebase": "^2.3.2",
     "firebase-token-generator": "^2.0.0",
+    "moment": "^2.11.2",
     "mongoose": "^4.2.8",
     "request": "^2.69.0"
   }
