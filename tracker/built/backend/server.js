@@ -140,7 +140,7 @@ MapRouter.route('/Map')
                         timestamp: timestamp,
                         snaped: (temp && temp.snappedPoints && temp.snappedPoints[0]) ? temp.snappedPoints[0] : {} // road api response object
                     };
-                    Parking.checkParkingCondition(latittude, longitude, trackerUUID, name);
+                    Parking.checkParkingCondition(latittude, longitude, trackerUUID, name); //parking condtion checking
                     var loc = root.child('Maps').child(name + '-' + trackerUUID).push(location, function (error) {
                         if (error) {
                             res.send({ status: 'location not saved' });
@@ -197,7 +197,7 @@ var Parking = (function () {
             }
         });
     };
-    Parking.end = function (latittude, longitude, trackerUUID, name) {
+    Parking.end = function (latittude, longitude, trackerUUID, name, cb) {
         var parkinLocation = {
             latittude: latittude,
             longitude: longitude,
@@ -221,12 +221,17 @@ var Parking = (function () {
                     if (error) {
                         // res.send({ status: 'end parking not saved' })
                         console.log('end parking not saved');
+                        cb();
                     }
                     else {
                         // res.send({ status: 'end parking saved' })
                         console.log('end parking saved');
+                        cb();
                     }
                 });
+                console.log('parking.end', name);
+                console.log('parking.end', trackerUUID);
+                console.log('parking.end', parkingId);
             }
         });
     };
@@ -246,11 +251,12 @@ var Parking = (function () {
                     console.log("distance=" + distance + "minutes=" + minutes);
                 }
                 else {
-                    Parking.end(latittude, longitude, trackerUUID, name);
-                    prevLattitude = null;
-                    prevLongitude = null;
-                    prevTimestamp = null;
-                    parkingId = null;
+                    Parking.end(latittude, longitude, trackerUUID, name, function () {
+                        prevLattitude = null;
+                        prevLongitude = null;
+                        prevTimestamp = null;
+                        parkingId = null;
+                    });
                     console.log("distance1=" + distance + "minutes1=" + minutes);
                 }
             }

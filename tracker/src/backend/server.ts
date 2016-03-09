@@ -285,7 +285,7 @@ class Parking {
         })
     }
 
-    static end(latittude: number, longitude: number, trackerUUID: string, name: string) {
+    static end(latittude: number, longitude: number, trackerUUID: string, name: string, cb:()=>void) {
 
         var parkinLocation = {
             latittude: latittude,
@@ -307,21 +307,28 @@ class Parking {
 
             } else {
 
+                
+                    var postRef = root.child('Parking').child(name + '-' + trackerUUID).child(parkingId)
 
-                var postRef = root.child('Parking').child(name + '-' + trackerUUID).child(parkingId)
+                    postRef.child('EndParking').set(parkinLocation, (error) => {
+                        if (error) {
+                            // res.send({ status: 'end parking not saved' })
+                            console.log('end parking not saved');
+                            cb();
 
-                postRef.child('EndParking').set(parkinLocation, (error) => {
-                    if (error) {
-                        // res.send({ status: 'end parking not saved' })
-                        console.log('end parking not saved');
+                        } else {
+                            // res.send({ status: 'end parking saved' })
+                            console.log('end parking saved');
+                            cb();
 
-
-                    } else {
-                        // res.send({ status: 'end parking saved' })
-                        console.log('end parking saved');
-
-                    }
-                })
+                        }
+                    })
+                        
+                    console.log('parking.end', name);
+                    console.log('parking.end', trackerUUID);
+                    console.log('parking.end', parkingId);
+                    
+               
 
             }
         })
@@ -356,12 +363,14 @@ class Parking {
 
                 } else {
 
-                    Parking.end(latittude, longitude, trackerUUID, name)
-
+                    Parking.end(latittude, longitude, trackerUUID, name,()=>{
                     prevLattitude = null
                     prevLongitude = null
                     prevTimestamp = null
                     parkingId = null
+                        
+                    })
+
 
                     console.log("distance1=" + distance + "minutes1=" + minutes)
 
